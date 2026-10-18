@@ -1,0 +1,28 @@
+{
+  "repository": "sebastiandizon/spotify-million-song",
+  "revision": "6cdae117e919a4f5cb47ed899f51ed3d94aa5268",
+  "url": "https://huggingface.co/datasets/sebastiandizon/spotify-million-song/resolve/6cdae117e919a4f5cb47ed899f51ed3d94aa5268/song_data.csv",
+  "sha256": "7cd19a8adf74791bfd99e1ccb8b1fc3bd2ed33399faeb86fa3677638a5623afd",
+  "bytes": 74864162,
+  "declared_license": "CC0, as stated in the upstream dataset card",
+  "upstream": "https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset",
+  "retrieved": "2026-10-16",
+  "expected_rows": 57650,
+  "source_rows": 57650,
+  "imported_rows": 57650,
+  "rejected_rows": {},
+  "unique_artists": 643,
+  "unique_lyrics": 57484,
+  "duplicate_lyrics_preserved": 166,
+  "normalized_sha256": "b65c51c5417dd155338b626a74a0effd0ac5368bc343b8754e5beee06c677c7c",
+  "indexed_fields": [
+    "title",
+    "artist",
+    "lyrics"
+  ],
+  "missing_metadata": [
+    "genre",
+    "year"
+  ],
+  "description_policy": "No generated summaries or theme labels in the retrieval index."
+}

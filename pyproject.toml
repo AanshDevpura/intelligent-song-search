@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "songsearch"
+version = "1.0.0"
+description = "Descriptive song retrieval with sentence embeddings, BM25 and reproducible evaluation"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26,<3", "fastapi>=0.115,<1", "uvicorn>=0.30,<1"]
+
+[project.optional-dependencies]
+semantic = ["sentence-transformers>=3.0,<6"]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "ruff>=0.11,<1"]
+
+[project.scripts]
+songsearch = "songsearch.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["songsearch*"]
+
+[tool.setuptools.package-data]
+songsearch = ["static/*", "dataset-source.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

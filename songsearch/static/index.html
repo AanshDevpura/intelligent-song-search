@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Song Search</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <strong>Song Search</strong>
+    <nav aria-label="Views">
+      <button id="search-tab" aria-pressed="true">Search</button>
+      <button id="eval-tab" aria-pressed="false">Evaluation</button>
+    </nav>
+  </header>
+  <main>
+    <section id="search-view">
+      <h1>Search song lyrics</h1>
+      <p class="muted">Describe the song’s story, theme, or mood.</p>
+      <form id="search-form">
+        <label for="query">Description</label>
+        <div class="search-row">
+          <input id="query" type="search" maxlength="2000" placeholder="A sad song about regretting a breakup" required>
+          <button id="search-button" type="submit" class="primary" disabled>Search</button>
+        </div>
+        <div class="options">
+          <label>Method
+            <select id="mode"><option value="hybrid">Hybrid</option><option value="semantic">Semantic</option><option value="keyword">Keyword (BM25)</option></select>
+          </label>
+          <label>Artist <input id="artist" placeholder="Any artist" maxlength="200"></label>
+          <label>Results <select id="limit"><option>5</option><option selected>10</option><option>20</option><option>30</option><option>40</option><option>50</option></select></label>
+          <label>Semantic weight <input id="alpha" type="number" min="0" max="1" step="0.05" value="0.65" title="In hybrid search, the remaining weight goes to keyword matching."></label>
+        </div>
+      </form>
+      <p id="search-status" role="status" aria-live="polite">Loading catalogue…</p>
+      <ol id="results" aria-label="Search results"></ol>
+      <details id="label-tools">
+        <summary id="label-summary">Relevance labels</summary>
+        <p class="muted">Mark relevant results to build a test set, then evaluate them here. Labels are saved in this browser.</p>
+        <button id="evaluate-labels" type="button" disabled>Evaluate my labels</button>
+        <a id="export-labels" hidden>Download labels</a>
+        <textarea id="label-json" aria-label="Relevance labels JSON" readonly rows="8"></textarea>
+      </details>
+    </section>
+    <section id="evaluation-view" hidden>
+      <h1>Evaluation</h1>
+      <p class="muted">Compare retrieval methods against expected songs or your own relevance labels.</p>
+      <form id="eval-form" class="options">
+        <label>Test set <select id="eval-source"><option value="configured">Configured queries</option><option value="custom">My labels</option></select></label>
+        <label>K <select id="eval-k"><option>5</option><option selected>10</option><option>20</option><option>50</option></select></label>
+        <label>Semantic weight <input id="eval-alpha" type="number" min="0" max="1" step="0.05" value="0.65"></label>
+        <button id="run-eval" type="submit" class="primary" disabled>Run evaluation</button>
+        <a id="download-report" hidden>Download report</a>
+      </form>
+      <p id="eval-status" role="status" aria-live="polite"></p>
+      <div id="evaluation"></div>
+      <p class="muted note">Precision@K divides relevant hits by K. Recall@K divides hits by all labeled relevant songs. MRR uses the first relevant result in the full ranking. Unlabeled songs count as nonrelevant. The configured lists contain ten assistant-curated expectations per query, including broader thematic matches and some cover versions. Their order is an editorial preference; these metrics treat all ten equally. These are incomplete judgments, not independently validated ground truth.</p>
+    </section>
+  </main>
+  <footer id="catalogue-info"></footer>
+</body>
+</html>
