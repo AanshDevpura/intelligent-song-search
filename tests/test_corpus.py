@@ -42,7 +42,7 @@ def test_full_import_is_deterministic_and_reports_rejections(tmp_path, monkeypat
     assert report["imported_rows"] == 2
     assert report["duplicate_lyrics_preserved"] == 1
     assert report["rejected_rows"] == {"missing_artist_title_or_lyrics": 1}
-    assert all(s.lyrics and not s.description and not s.tags for s in load_songs(output))
+    assert all(s.lyrics for s in load_songs(output))
     assert corpus.prepare(output, raw_path=raw)["normalized_sha256"] == report["normalized_sha256"]
     assert first == output.read_bytes()
 
@@ -74,7 +74,7 @@ def test_entire_corpus_and_judgments():
     songs = load_songs(root / "data/songs.jsonl")
     assert len(songs) == 57650
     assert len({s.id for s in songs}) == 57650
-    assert all(s.lyrics and not s.description and not s.tags for s in songs)
+    assert all(s.lyrics for s in songs)
     cases = load_judgments(root / "data/judgments.json", {s.id for s in songs})
     assert len(cases) == 25
     assert all(len(c["relevant"]) == 10 for c in cases)

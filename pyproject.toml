@@ -13,9 +13,6 @@ dependencies = ["numpy>=1.26,<3", "fastapi>=0.115,<1", "uvicorn>=0.30,<1"]
 semantic = ["sentence-transformers>=3.0,<6"]
 dev = ["pytest>=8,<10", "httpx>=0.27,<1", "ruff>=0.11,<1"]
 
-[project.scripts]
-songsearch = "songsearch.cli:main"
-
 [tool.setuptools.packages.find]
 include = ["songsearch*"]
 

@@ -80,10 +80,6 @@ def prepare(destination: str | Path, *, raw_path: str | Path | None = None) -> d
                     title=title,
                     artist=artist,
                     lyrics=lyrics,
-                    genre="",
-                    year=None,
-                    description="",
-                    tags="",
                     source_url=url,
                 )
                 out.write(json.dumps(record, ensure_ascii=False) + "\n")

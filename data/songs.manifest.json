@@ -14,7 +14,7 @@
   "unique_artists": 643,
   "unique_lyrics": 57484,
   "duplicate_lyrics_preserved": 166,
-  "normalized_sha256": "b65c51c5417dd155338b626a74a0effd0ac5368bc343b8754e5beee06c677c7c",
+  "normalized_sha256": "bfd3568c7424a49807c71030979bf3f218fb84cad0250380ee5f16ab2003f039",
   "indexed_fields": [
     "title",
     "artist",

@@ -13,19 +13,11 @@ class Song:
     title: str
     artist: str
     lyrics: str = ""
-    genre: str = ""
-    year: int | None = None
-    description: str = ""
-    tags: str = ""
     source_url: str = ""
 
     @property
     def text(self) -> str:
-        return "\n".join(
-            str(v)
-            for v in (self.title, self.artist, self.genre, self.description, self.tags, self.lyrics)
-            if v
-        )
+        return "\n".join((self.title, self.artist, self.lyrics))
 
     def public(self) -> dict:
         return asdict(self)
@@ -53,7 +45,7 @@ def load_songs(path: str | Path) -> list[Song]:
         if unknown:
             raise ValueError(f"Record {i}: unknown fields {sorted(unknown)}")
         values = {}
-        for key in allowed - {"year"}:
+        for key in allowed:
             value = row.get(key, "")
             if not isinstance(value, str):
                 raise ValueError(f"Record {i}: {key} must be text")
@@ -61,21 +53,14 @@ def load_songs(path: str | Path) -> list[Song]:
         for key in ("id", "title", "artist"):
             if not values[key]:
                 raise ValueError(f"Record {i}: {key} is required")
-        if not values["lyrics"] and not values["description"]:
-            raise ValueError(f"Record {i}: lyrics or description is required")
+        if not values["lyrics"]:
+            raise ValueError(f"Record {i}: lyrics is required")
         if values["source_url"]:
             source = urlsplit(values["source_url"])
             if source.scheme != "https" or not source.netloc or source.username or source.password:
                 raise ValueError(f"Record {i}: source_url must be a public HTTPS URL")
         if values["id"] in seen:
             raise ValueError(f"Record {i}: duplicate id {values['id']!r}")
-        year = row.get("year")
-        if year is not None and year != "":
-            if isinstance(year, bool) or not str(year).isdigit() or not 1000 <= int(year) <= 9999:
-                raise ValueError(f"Record {i}: year must be a four-digit integer")
-            year = int(year)
-        else:
-            year = None
-        songs.append(Song(**values, year=year))
+        songs.append(Song(**values))
         seen.add(values["id"])
     return songs

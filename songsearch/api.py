@@ -38,10 +38,7 @@ def create_app(engine, judgments=None) -> FastAPI:
         mode: str = "hybrid",
         k: int = Query(10, ge=1, le=50),
         alpha: float = Query(0.65, ge=0, le=1),
-        genre: str = "",
         artist: str = "",
-        year_from: int | None = Query(None, ge=1000, le=9999),
-        year_to: int | None = Query(None, ge=1000, le=9999),
     ):
         started = perf_counter()
         try:
@@ -50,10 +47,7 @@ def create_app(engine, judgments=None) -> FastAPI:
                 mode=mode,
                 k=k,
                 alpha=alpha,
-                genre=genre,
                 artist=artist,
-                year_from=year_from,
-                year_to=year_to,
             )
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc

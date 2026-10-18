@@ -13,9 +13,9 @@ from songsearch.evaluation import evaluate, load_judgments, metrics
 @pytest.fixture
 def songs():
     return [
-        Song("sad", "Farewell", "Ada", "I regret leaving you alone", "Folk", 2020),
-        Song("joy", "Reunion", "Ben", "We dance together with friends", "Pop", 2023),
-        Song("old", "Winter", "Ada", "Dark days without you", "Folk"),
+        Song("sad", "Farewell", "Ada", "I regret leaving you alone"),
+        Song("joy", "Reunion", "Ben", "We dance together with friends"),
+        Song("old", "Winter", "Ada", "Dark days without you"),
     ]
 
 
@@ -72,15 +72,10 @@ def test_hybrid_fusion_endpoints_and_determinism(songs):
     assert engine.search("regret dance") == engine.search("regret dance")
 
 
-def test_filters_and_unknown_year(songs):
+def test_artist_filter(songs):
     engine = SearchEngine(songs, backend="keyword")
-    assert engine.search("you", mode="keyword") == []  # stop word
-    assert engine.search("regret", mode="keyword", genre="POP") == []
-    assert engine.search("regret", mode="keyword", artist="ad", year_from=2010)[0]["id"] == "sad"
-    assert engine.search("Dark", mode="keyword", year_to=2025) == []
-    assert engine.search("Dark", mode="keyword", genre="FOLK")[0]["id"] == "old"
-    with pytest.raises(ValueError):
-        engine.search("regret", mode="keyword", year_from=2024, year_to=2000)
+    assert engine.search("regret", mode="keyword", artist="ad")[0]["id"] == "sad"
+    assert engine.search("regret", mode="keyword", artist="Ben") == []
 
 
 @pytest.mark.parametrize(
@@ -147,7 +142,6 @@ def test_ingestion_formats_and_validation(songs, tmp_path):
         [],
         [songs[0].public()] * 2,
         [{"id": "missing"}],
-        [{**songs[0].public(), "year": True}],
         [{**songs[0].public(), "lyrics": None}],
         [{**songs[0].public(), "extra": "unknown"}],
     ]:
@@ -211,27 +205,16 @@ def test_api(songs):
     assert missing.get("/api/evaluate").status_code == 404
 
 
-def test_summary_catalogue_and_source_validation(tmp_path):
+def test_source_validation(tmp_path):
     path = tmp_path / "songs.json"
-    summary = dict(
-        id="real",
-        title="Someone Like You",
-        artist="Adele",
-        description="A reflective song about a former relationship.",
-        source_url="https://music.apple.com/us/album/example/1",
-    )
-    path.write_text(json.dumps([summary]))
-    song = load_songs(path)[0]
-    assert song.lyrics == ""
-    assert SearchEngine([song], backend="keyword").search("reflective", mode="keyword")
-    for changes in [
-        dict(description=""),
-        dict(source_url="javascript:alert(1)"),
-        dict(source_url="https://user:password@example.com"),
-    ]:
-        path.write_text(json.dumps([{**summary, **changes}]))
+    record = dict(id="real", title="Someone Like You", artist="Adele", lyrics="A former love")
+    for source in ["javascript:alert(1)", "https://user:password@example.com"]:
+        path.write_text(json.dumps([{**record, "source_url": source}]))
         with pytest.raises(ValueError):
             load_songs(path)
+    path.write_text(json.dumps([{**record, "lyrics": ""}]))
+    with pytest.raises(ValueError, match="lyrics"):
+        load_songs(path)
 
 
 def test_evaluation_ranking_does_not_materialize_full_lyrics(songs):
@@ -277,3 +260,36 @@ def test_http_search_supports_fifty_results():
     assert response.json()["count"] == 50
     assert len({s["id"] for s in response.json()["results"]}) == 50
     assert client.get("/api/search", params={"q": "needle", "k": 51}).status_code == 422
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_web_app_startup_prepares_only_missing_catalogue(tmp_path, monkeypatch, songs, existing):
+    from songsearch import __main__ as server
+
+    monkeypatch.chdir(tmp_path)
+    data = tmp_path / "data"
+    data.mkdir()
+    catalogue = data / "songs.jsonl"
+    rows = "\n".join(json.dumps(s.public()) for s in songs)
+    (data / "judgments.json").write_text(json.dumps([{"query": "regret", "relevant": ["sad"]}]))
+    if existing:
+        catalogue.write_text(rows)
+    prepared = []
+
+    def prepare(path):
+        prepared.append(path)
+        path.write_text(rows)
+
+    running = {}
+    monkeypatch.setattr(server, "prepare", prepare)
+    monkeypatch.setattr(
+        server, "SearchEngine", lambda songs, **kw: SearchEngine(songs, backend="keyword")
+    )
+    monkeypatch.setattr(server.uvicorn, "run", lambda app, **kw: running.update(app=app, **kw))
+    monkeypatch.setenv("PORT", "8766")
+    server.main()
+    assert len(prepared) == (0 if existing else 1)
+    assert running["host"] == "127.0.0.1" and running["port"] == 8766
+    client = TestClient(running["app"])
+    assert client.get("/api/judgments").json()[0]["expected"][0]["title"] == "Farewell"
+    assert client.get("/api/evaluate").json()["configurations"][0]["metrics"]["mrr"] == 1

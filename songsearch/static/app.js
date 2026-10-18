@@ -21,19 +21,11 @@ function status(id, text, error = false) {
   $(id).textContent = text;
   $(id).classList.toggle('error', error);
 }
-function downloadLink(id, data, name) {
-  $(id).href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
-  $(id).download = name;
-  $(id).hidden = false;
-}
 function renderLabels() {
   const cases = customCases();
   $('label-summary').textContent = `Relevance labels (${cases.length} ${cases.length === 1 ? 'query' : 'queries'})`;
-  $('label-json').value = JSON.stringify(cases, null, 2);
-  $('export-labels').hidden = !cases.length;
   $('evaluate-labels').disabled = !cases.length;
   if ($('eval-source').value === 'custom') showReferences();
-  if (cases.length) downloadLink('export-labels', cases, 'judgments.json');
 }
 function markButton(query, id) {
   const button = node('button');
@@ -53,7 +45,7 @@ function markButton(query, id) {
       const selected = new Set(customCases().flatMap(c => c.relevant));
       localStorage.setItem(storageKey + '.songs', JSON.stringify([...songNames].filter(([id]) => selected.has(id))));
     }
-    catch { status('search-status', 'Browser storage is unavailable. Download your labels before closing.', true); }
+    catch { status('search-status', 'Browser storage is unavailable. Labels will be lost when you close this page.', true); }
   };
   return button;
 }
@@ -62,14 +54,14 @@ function renderResults(data) {
     songNames.set(song.id, {id: song.id, title: song.title, artist: song.artist});
     const row = node('li', undefined, 'result');
     const content = node('div');
-    content.append(node('h2', song.title), node('p', [song.artist, song.genre, song.year].filter(Boolean).join(' · '), 'artist'));
+    content.append(node('h2', song.title), node('p', song.artist, 'artist'));
     const words = song.lyrics.trim().split(/\s+/);
-    content.append(node('p', song.lyrics ? words.slice(0, 8).join(' ') + (words.length > 8 ? '…' : '') : song.description, 'excerpt'));
+    content.append(node('p', words.slice(0, 8).join(' ') + (words.length > 8 ? '…' : ''), 'excerpt'));
     const details = node('details');
     details.append(node('summary', 'Lyrics and scores'));
     details.append(node('p', `Cosine: ${song.semantic_score?.toFixed(3) ?? '—'} · BM25: ${song.keyword_score.toFixed(3)}`, 'scores'));
     if (song.matched_terms.length) details.append(node('p', `Matched words: ${song.matched_terms.join(', ')}`));
-    details.append(node('pre', song.lyrics || 'No lyrics supplied. This record uses a description.'));
+    details.append(node('pre', song.lyrics));
     if (song.source_url) {
       const source = node('a', 'Source'); source.href = song.source_url;
       source.target = '_blank'; source.rel = 'noopener noreferrer'; details.append(source);
@@ -127,7 +119,7 @@ function renderCases(cases, configurations = []) {
 }
 function showReferences() {
   evaluationVersion++;
-  $('evaluation').replaceChildren(); $('download-report').hidden = true;
+  $('evaluation').replaceChildren();
   const cases = referenceCases();
   renderCases(cases);
   $('run-eval').disabled = !catalogue || !cases.length;
@@ -160,7 +152,6 @@ $('eval-form').onsubmit = async event => {
     table.append(tbody); $('evaluation').replaceChildren(table);
     renderCases(report.cases, report.configurations);
     status('eval-status', `${report.query_count} queries · ${report.catalogue_size.toLocaleString()} songs · K = ${report.k}`);
-    downloadLink('download-report', report, 'evaluation.json');
   } catch (error) { if (version === evaluationVersion) status('eval-status', error.message, true); }
   finally { if (version === evaluationVersion) $('run-eval').disabled = false; }
 };

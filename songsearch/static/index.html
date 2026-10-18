@@ -40,8 +40,6 @@
         <summary id="label-summary">Relevance labels</summary>
         <p class="muted">Mark relevant results to build a test set, then evaluate them here. Labels are saved in this browser.</p>
         <button id="evaluate-labels" type="button" disabled>Evaluate my labels</button>
-        <a id="export-labels" hidden>Download labels</a>
-        <textarea id="label-json" aria-label="Relevance labels JSON" readonly rows="8"></textarea>
       </details>
     </section>
     <section id="evaluation-view" hidden>
@@ -52,11 +50,10 @@
         <label>K <select id="eval-k"><option>5</option><option selected>10</option><option>20</option><option>50</option></select></label>
         <label>Semantic weight <input id="eval-alpha" type="number" min="0" max="1" step="0.05" value="0.65"></label>
         <button id="run-eval" type="submit" class="primary" disabled>Run evaluation</button>
-        <a id="download-report" hidden>Download report</a>
       </form>
       <p id="eval-status" role="status" aria-live="polite"></p>
       <div id="evaluation"></div>
-      <p class="muted note">Precision@K divides relevant hits by K. Recall@K divides hits by all labeled relevant songs. MRR uses the first relevant result in the full ranking. Unlabeled songs count as nonrelevant. The configured lists contain ten assistant-curated expectations per query, including broader thematic matches and some cover versions. Their order is an editorial preference; these metrics treat all ten equally. These are incomplete judgments, not independently validated ground truth.</p>
+      <p class="muted note">Precision@K = relevant hits / K. Recall@K = hits / labeled songs. MRR uses the first relevant result in the full ranking. Labels are hand-selected and subjective; reviewing the entire dataset for every query was impractical. Unlabeled songs may also be relevant. All ten expected songs count equally.</p>
     </section>
   </main>
   <footer id="catalogue-info"></footer>

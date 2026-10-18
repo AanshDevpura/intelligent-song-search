@@ -33,10 +33,7 @@ class SentenceEncoder:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:
-            raise RuntimeError(
-                "Install semantic support: pip install -e '.[semantic]' "
-                "or run with --backend keyword"
-            ) from exc
+            raise RuntimeError("Install semantic support: pip install -e '.[semantic]'") from exc
         self.model = SentenceTransformer(
             model,
             revision=revision,
@@ -183,10 +180,7 @@ class SearchEngine:
         mode: str = "hybrid",
         k: int = 10,
         alpha: float = 0.65,
-        genre: str = "",
         artist: str = "",
-        year_from: int | None = None,
-        year_to: int | None = None,
         details: bool = True,
     ) -> list[dict]:
         query = query.strip()
@@ -196,17 +190,12 @@ class SearchEngine:
             raise ValueError("Unknown search mode")
         if not 1 <= k <= max(100, len(self.songs)) or not np.isfinite(alpha) or not 0 <= alpha <= 1:
             raise ValueError("k must be positive and within catalogue/UI bounds; alpha must be 0–1")
-        if year_from is not None and year_to is not None and year_from > year_to:
-            raise ValueError("Start year must not exceed end year")
         if self.backend == "keyword" and mode != "keyword":
             raise ValueError("Semantic and hybrid search require the semantic backend")
         candidates = [
             i
             for i, s in enumerate(self.songs)
-            if (not genre or s.genre.casefold() == genre.casefold())
-            and (not artist or artist.casefold() in s.artist.casefold())
-            and (year_from is None or s.year is not None and s.year >= year_from)
-            and (year_to is None or s.year is not None and s.year <= year_to)
+            if not artist or artist.casefold() in s.artist.casefold()
         ]
         if not candidates:
             return []
@@ -269,9 +258,7 @@ class SearchEngine:
             "count": len(self.songs),
             "catalogue_id": self.catalogue_id,
             "lyrics_count": sum(bool(s.lyrics) for s in self.songs),
-            "year_count": sum(s.year is not None for s in self.songs),
             "backend": self.backend,
             "model": self.encoder.identity if self.encoder else None,
-            "genres": sorted({s.genre for s in self.songs if s.genre}),
             "modes": ["keyword", "semantic", "hybrid"] if self.encoder else ["keyword"],
         }
