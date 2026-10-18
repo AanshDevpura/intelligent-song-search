@@ -41,4 +41,3 @@ ruff format --check songsearch tests
 
 After the dataset and model are cached, run integration checks with `HF_HUB_OFFLINE=1 SONGSEARCH_TEST_MODEL=1 SONGSEARCH_TEST_CORPUS=1 pytest -q`.
 
-Inspired by [intelligent-movie-search](https://github.com/sydneyaurelius/intelligent-movie-search).
